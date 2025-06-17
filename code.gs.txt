@@ -1,0 +1,53 @@
+function myFunction() {
+  
+}
+let sheetName = 'Quotes';
+
+// Web App Entry Point
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+// Save quote data from the form
+function submitQuote(data) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow([
+      'Timestamp', 'Name', 'Email', 'Phone', 'DOB', 'Marital',
+      'Street', 'City', 'State', 'ZIP', 'Drivers', 'Vehicles', 'Coverages'
+    ]);
+  }
+
+  sheet.appendRow([
+    new Date(),
+    data.name,
+    data.email,
+    data.phone,
+    data.dob,
+    data.marital,
+    data.street,
+    data.city,
+    data.state,
+    data.zip,
+    JSON.stringify(data.drivers),
+    JSON.stringify(data.vehicles),
+    JSON.stringify(data.coverages)
+  ]);
+
+  return { success: true, message: "Quote submitted successfully!" };
+}
+
+// Load vehicle year/make/model data from JSON in Google Drive
+function getVehicleData() {
+  try {
+    const fileId = '1JhiExcxN8hGrj-hpQTWKRNodHx_k4Uf5'; // Your JSON file ID
+    const file = DriveApp.getFileById(fileId);
+    const content = file.getBlob().getDataAsString();
+    return JSON.parse(content); // Assumes the JSON is in { "1990": { "Make1": ["Model1", "Model2"], ... }, ... }
+  } catch (e) {
+    return { error: true, message: 'Error loading vehicle data: ' + e.message };
+  }
+}
